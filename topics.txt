@@ -1,0 +1,120 @@
+introduction to web apps and databases
+introduction to SQL injection attacks
+----
+Gruyere -- GOOG --- CC-BY-ND
+WebGoat -- 
+DVWA -- GPL
+https://github.com/SpiderLabs/MCIR/tree/master/sqlol/challenges
+
+        https://www.owasp.org/index.php/OWASP_Vulnerable_Web_Applications_Directory_Project
+
+
+-- 
+XAMPP
+    https://www.apachefriends.org/ 
+
+    TODO: create VM image
+    root, no password into mysql
+    can use PHP
+
+Alternative:
+    Tomcat and Java
+        likely easier with some sort of IDE...
+        What are people using in classrooms?    
+
+    
+
+using Servlets + SQLite
+    Apache Tomcat
+
+To supply:
+    worksheet: SQLite commands
+        Q: exericses with quesitons?
+    example servlet-based application
+
+
+outline idea 3:
+    alternative one:
+        simple Java web app
+            self-contained JAR
+        guestbook with public/private comments, login wiht secret password (hard-coded?)
+
+        exercises:
+            accessing DB directly to demonstrate
+
+        SQL injection on app:
+            read private comments
+        SQL injection on app:
+            write public comments, etc.
+
+        SQL injection defenses: editing Java code
+            some broken solutions
+            placeholders
+
+    alternative two:
+        command injection
+        generate Java code to search Java data structure
+        
+
+
+outline idea 2:
+
+    databases generally
+    SQLite
+        download + usage instructions
+            [+ alternative with existing web app]
+    Basic SQL demo
+        exercise: SQL queries on some given DB?
+    program that accesses SQLite from the command-line
+        Q: What task?
+    SQL injection bug
+        SQL injection exercises
+
++
+
+    web applications generally
+    HTTP -- requests/responses
+    authentication and cookies
+
+    example web application
+    accessing the database for the web app
+
+    SQL injection in the web app
+
+---
+
+outline idea 1:
+
+    example: database-backed web-app
+
+    web app introduction:
+        command-line SQL client
+        CREATE TABLE
+        INSERT, SELECT, UPDATE demoed on live web app
+            preference: exercise to follow along with?
+
+        implementing new functionality
+
+        plus SQL example with JOIN?
+
+
+        talk about GET/POST?
+
+    hand-out:
+        instructions/VM image/etc. for configuring
+
+
+    
+    SQL injection example
+        web-app written with placeholders
+        what if not?
+
+        simple injection
+            multiple commands
+            no multiple commands
+            joining tables
+            "blind" injection
+
+    hand-out:
+        example vulnerable application?
+            or instructions on how to use existing?
