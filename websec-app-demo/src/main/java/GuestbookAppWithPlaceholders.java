@@ -29,14 +29,18 @@ public class GuestbookAppWithPlaceholders extends HttpServlet
     public static void setupDB() throws Exception {
         Connection connection = connectToDB();
         Statement statement = connection.createStatement();
-        statement.executeUpdate(
-            "CREATE TABLE IF NOT EXISTS posts (\n"+ 
-            "  public_content TEXT,\n" +
-            "  private_content TEXT,\n" +
-            "  post_time TEXT\n" +
-            ")"
-        );
-        connection.close();
+        try {
+            statement.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS posts (\n"+ 
+                "  public_content TEXT,\n" +
+                "  private_content TEXT,\n" +
+                "  post_time TEXT\n" +
+                ")"
+            );
+        } finally {
+            statement.close();
+            connection.close();
+        }
     }
 
     public static void main( String[] args ) throws Exception
@@ -82,6 +86,60 @@ public class GuestbookAppWithPlaceholders extends HttpServlet
         out.println("<hr>");
     }
 
+    private void showPosts(HttpServletResponse response, boolean includePrivate, String query) throws IOException {
+        startHtml(response, HttpServletResponse.SC_OK);
+        PrintWriter out = response.getWriter();
+        if (includePrivate) {
+            out.println("<p>Showing private posts: <a href=/>back to normal view</a><br><hr>");
+        }
+        printNewPostForm(out);
+        try {
+            Connection connection = connectToDB();
+            PreparedStatement statement;
+            if (query.equals("")) {
+                statement = connection.prepareStatement(
+                    "SELECT * FROM posts ORDER BY post_time"
+                );
+            } else {
+                statement = connection.prepareStatement(
+                    "SELECT * FROM posts WHERE public_content LIKE ? ORDER BY post_time"
+                );
+                statement.setString(1, "%" + query + "%");
+            }
+            try {
+                ResultSet results = statement.executeQuery();
+                int numPosts = 0;
+                out.println("<p>Guestbook posts:");
+                if (!query.equals("")) {
+                    out.println(" containing <b>" + query + "</b>");
+                }
+                out.println("<table>");
+                while (results.next()) {
+                    out.println("<tr><td>At " + results.getString("post_time") + ":</td><td>");
+                    String content = results.getString("public_content");
+                    if (!query.equals("")) {
+                        content = content.replaceAll("(?i)(" + query + ")", "<b>$1</b>");
+                    }
+                    out.println(content);
+                    if (includePrivate) {
+                        out.println("<hr>" + results.getString("private_content"));
+                    }
+                    out.println("</td></tr>");
+                    numPosts += 1;
+                }
+                out.println("</table>");
+            } finally {
+                statement.close();
+                connection.close();
+            }
+        } catch (SQLException e) {
+            out.println("<p>Exception encountered: " + e.getMessage() + "<pre>");
+            e.printStackTrace(out);
+            out.println("</pre>");
+        }
+    }
+
+
     private void showPosts(HttpServletResponse response, boolean includePrivate) throws IOException {
         startHtml(response, HttpServletResponse.SC_OK);
         PrintWriter out = response.getWriter();
@@ -92,23 +150,27 @@ public class GuestbookAppWithPlaceholders extends HttpServlet
         try {
             Connection connection = connectToDB();
             Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery(
-                "SELECT * FROM posts ORDER BY post_time"
-            );
-            int numPosts = 0;
-            out.println("<p>Guestbook posts:");
-            out.println("<table>");
-            while (results.next()) {
-                out.println("<tr><td>At " + results.getString("post_time") + ":</td><td>");
-                out.println(results.getString("public_content"));
-                if (includePrivate) {
-                    out.println("<hr>" + results.getString("private_content"));
+            try {
+                ResultSet results = statement.executeQuery(
+                    "SELECT * FROM posts ORDER BY post_time"
+                );
+                int numPosts = 0;
+                out.println("<p>Guestbook posts:");
+                out.println("<table>");
+                while (results.next()) {
+                    out.println("<tr><td>At " + results.getString("post_time") + ":</td><td>");
+                    out.println(results.getString("public_content"));
+                    if (includePrivate) {
+                        out.println("<hr>" + results.getString("private_content"));
+                    }
+                    out.println("</td></tr>");
+                    numPosts += 1;
                 }
-                out.println("</td></tr>");
-                numPosts += 1;
-            }
-            out.println("</table>");
-            connection.close();
+                out.println("</table>");
+           } finally {
+               statement.close();
+               connection.close();
+           }
        } catch (SQLException e) {
             out.println("<p>Exception encountered: " + e.getMessage() + "<pre>");
             e.printStackTrace(out);
@@ -132,15 +194,22 @@ public class GuestbookAppWithPlaceholders extends HttpServlet
         String privateText = parameters.get("private")[0];
         String postTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         Connection connection = connectToDB();
-        PreparedStatement statement = connection.prepareStatement(
-            "INSERT INTO posts (public_content, private_content, post_time) " +
-            "VALUES (?, ?, ?)"
-        );
-        statement.setString(1, publicText);
-        statement.setString(2, privateText);
-        statement.setString(3, postTime);
-        statement.executeUpdate();
-        connection.close();
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO posts (public_content, private_content, post_time) " +
+                "VALUES (?, ?, ?)"
+            );
+            try {
+                statement.setString(1, publicText);
+                statement.setString(2, privateText);
+                statement.setString(3, postTime);
+                statement.executeUpdate();
+            } finally {
+                statement.close();
+            }
+        } finally {
+            connection.close();
+        }
     }
 
     @Override

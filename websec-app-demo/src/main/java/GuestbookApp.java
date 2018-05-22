@@ -28,14 +28,18 @@ public class GuestbookApp extends HttpServlet
     public static void setupDB() throws Exception {
         Connection connection = connectToDB();
         Statement statement = connection.createStatement();
-        statement.executeUpdate(
-            "CREATE TABLE IF NOT EXISTS posts (\n"+ 
-            "  public_content TEXT,\n" +
-            "  private_content TEXT,\n" +
-            "  post_time TEXT\n" +
-            ")"
-        );
-        connection.close();
+        try {
+            statement.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS posts (\n"+ 
+                "  public_content TEXT,\n" +
+                "  private_content TEXT,\n" +
+                "  post_time TEXT\n" +
+                ")"
+            );
+        } finally {
+            statement.close();
+            connection.close();
+        }
     }
 
     public static void main( String[] args ) throws Exception
@@ -79,9 +83,14 @@ public class GuestbookApp extends HttpServlet
         out.println("<input type=submit value=View>");
         out.println("</form>");
         out.println("<hr>");
+        out.println("<form method=get>");
+        out.println("View posts whose public text contains: <input name=query>");
+        out.println("<input type=submit value=View>");
+        out.println("</form>");
+        out.println("<hr>");
     }
 
-    private void showPosts(HttpServletResponse response, boolean includePrivate) throws IOException {
+    private void showPosts(HttpServletResponse response, boolean includePrivate, String query) throws IOException {
         startHtml(response, HttpServletResponse.SC_OK);
         PrintWriter out = response.getWriter();
         if (includePrivate) {
@@ -91,34 +100,57 @@ public class GuestbookApp extends HttpServlet
         try {
             Connection connection = connectToDB();
             Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery(
-                "SELECT * FROM posts ORDER BY post_time"
-            );
-            int numPosts = 0;
-            out.println("<p>Guestbook posts:");
-            out.println("<table>");
-            while (results.next()) {
-                out.println("<tr><td>At " + results.getString("post_time") + ":</td><td>");
-                out.println(results.getString("public_content"));
-                if (includePrivate) {
-                    out.println("<hr>" + results.getString("private_content"));
+            try {
+                ResultSet results;
+                if (query.equals("")) {
+                    results = statement.executeQuery(
+                        "SELECT * FROM posts ORDER BY post_time"
+                    );
+                } else {
+                    results = statement.executeQuery(
+                        "SELECT * FROM posts WHERE public_content LIKE '%" + query + "%' ORDER BY post_time"
+                    );
                 }
-                out.println("</td></tr>");
-                numPosts += 1;
+                int numPosts = 0;
+                out.println("<p>Guestbook posts:");
+                if (!query.equals("")) {
+                    out.println(" containing <b>" + query + "</b>");
+                }
+                out.println("<table>");
+                while (results.next()) {
+                    out.println("<tr><td>At " + results.getString("post_time") + ":</td><td>");
+                    String content = results.getString("public_content");
+                    if (!query.equals("")) {
+                        content = content.replaceAll("(?i)(" + query + ")", "<b>$1</b>");
+                    }
+                    out.println(content);
+                    if (includePrivate) {
+                        out.println("<hr>" + results.getString("private_content"));
+                    }
+                    out.println("</td></tr>");
+                    numPosts += 1;
+                }
+                out.println("</table>");
+            } finally {
+                statement.close();
+                connection.close();
             }
-            out.println("</table>");
-            connection.close();
-       } catch (SQLException e) {
+        } catch (SQLException e) {
             out.println("<p>Exception encountered: " + e.getMessage() + "<pre>");
             e.printStackTrace(out);
             out.println("</pre>");
-       }
+        }
     }
 
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
-        showPosts(response, false);
+        Map<String, String[]> parameters = request.getParameterMap();
+        if (parameters.containsKey("query")) {
+            showPosts(response, false, parameters.get("query")[0]);
+        } else {
+            showPosts(response, false, "");
+        }
     }
 
     private boolean checkPassword(String password) {
@@ -128,16 +160,20 @@ public class GuestbookApp extends HttpServlet
     private void insertPostFromForm(HttpServletRequest request) throws SQLException {
         Connection connection = connectToDB();
         Statement statement = connection.createStatement();
-        Map<String, String[]> parameters = request.getParameterMap();
-        String publicText = parameters.get("public")[0];
-        String privateText = parameters.get("private")[0];
-        String postTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        statement.executeUpdate(
-            "INSERT INTO posts (public_content, private_content, post_time) " +
-            "VALUES (\"" + publicText + "\", \"" + privateText +
-            "\", \"" + postTime + "\")"
-        );
-        connection.close();
+        try {
+            Map<String, String[]> parameters = request.getParameterMap();
+            String publicText = parameters.get("public")[0];
+            String privateText = parameters.get("private")[0];
+            String postTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            statement.executeUpdate(
+                "INSERT INTO posts (public_content, private_content, post_time) " +
+                "VALUES (\"" + publicText + "\", \"" + privateText +
+                "\", \"" + postTime + "\")"
+            );
+        } finally {
+            statement.close();
+            connection.close();
+        }
     }
 
     @Override
@@ -147,7 +183,7 @@ public class GuestbookApp extends HttpServlet
         PrintWriter out = response.getWriter();
         if (parameters.containsKey("password")) {
             if (checkPassword(parameters.get("password")[0])) {
-                showPosts(response, true);
+                showPosts(response, true, "");
             } else {
                 startHtml(response, HttpServletResponse.SC_FORBIDDEN);
                 out.println("<a href=/>go back</a><br><hr>");
