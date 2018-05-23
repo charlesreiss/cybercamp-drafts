@@ -1,0 +1,86 @@
+\begin{frame}{Java servlets}
+\begin{itemize}
+\item standardized library for writing web-apps in Java
+\item one implementation (ships as self-contained JAR): Jetty
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=servEx]{servlet example}
+\lstset{
+    language=Java,
+    style=small,
+    moredelim={**[is][\btHL<2>]{~2~}{~end~}},
+    moredelim={**[is][\btHL<3>]{~3~}{~end~}},
+    moredelim={**[is][\btHL<4>]{~4~}{~end~}},
+    moredelim={**[is][\btHL<5>]{~5~}{~end~}},
+}
+\begin{lstlisting}
+public class SomeServlet ~2~extends HttpServlet~end~ {
+    ~5~@Override~end~
+    protected void doGet(~3~HttpServletRequest request~end~, ~4~HttpServletResponse~end~ response){
+        ...
+    }
+}
+\end{lstlisting}
+\begin{tikzpicture}[overlay,remember picture]
+\coordinate (place) at ([yshift=2cm]current page.south);
+\tikzset{
+    info box/.style={at=(place),anchor=north}
+}
+\begin{visibleenv}<2>
+\node[info box] {
+    HttpServlet --- base class for HTTP ``server part''?
+};
+\end{visibleenv}
+\begin{visibleenv}<3>
+\node[info box] {
+    HttpServletRequest --- represent HTTP request \\
+    that is: what web browser sent
+};
+\end{visibleenv}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile,label=HTTPReqAndServlet]{HTTP requests and HttpServletRequest}
+\texttt{https://server.com/dir/file?query=string\#anchor} \\
+    browser connects to server.com; \textbf{browser} sends:
+\begin{framed}
+\tt
+\myemph<2>{GET}\tikzmark{method} \myemph<4>{/dir/file?query=string}\tikzmark{uri} HTTP/1.1 \\
+\myemph<3>{Host: server.com\tikzmark{host}} \\
+\ldots \\
+~ \\
+\end{framed}
+    \begin{tikzpicture}[overlay,remember picture]
+        \coordinate (overBox) at ([yshift=-2cm]current page.center);
+        \tikzset{
+            every node/.style={align=left,anchor=center},
+        }
+        \begin{visibleenv}<2>
+        \node[mycallout=method,anchor=center] at (overBox) {
+            \texttt{request.getMethod().equals("GET")} \\
+            \texttt{doGet()} method called
+        };
+        \end{visibleenv}
+        \begin{visibleenv}<3>
+        \node[mycallout=host,anchor=center] at (overBox) {
+            \texttt{request.getHeader("host").equals("server.com")}
+        };
+        \end{visibleenv}
+        \begin{visibleenv}<4>
+        \node[mycallout=uri,anchor=center] at (overBox) {
+            \texttt{request.getRequestURI().equals("/dir/file?query=string")} \\
+            URI = ``Uniform Resource Identifier''
+        };
+        \end{visibleenv}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{aside: URI and URLs}
+\begin{itemize}
+\item \texttt{\myemph<3>{https://www.google.com\myemph<2>{/}}}
+\item URI: \texttt{\myemph<2>{/}}
+    \begin{itemize}\item Uniform Resource Identifier\end{itemize}
+\item URL: \texttt{\myemph<3>{https://www.google.com/}}
+\end{itemize}
+\end{frame}

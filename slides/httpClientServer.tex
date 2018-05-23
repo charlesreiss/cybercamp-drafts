@@ -1,0 +1,81 @@
+\begin{frame}{the web}
+    \begin{tikzpicture}
+        \node[draw,thick,fill=blue!30] (browser) {
+            Web Browser
+        };
+        \node[draw,thick,fill=green!30,right=2cm of browser] (webSite1) {
+            facebook.com
+        };
+        \node[draw,thick,fill=green!30,below=.5cm of webSite1] (webSite2) {
+            foobar.com (uses facebook login)
+        };
+        \node[draw,thick,fill=red!30,below=.5cm of webSite2] (webSite3) {
+            evil.com (run by attacker)
+        };
+        \draw[thick,Latex-Latex] (browser) -- (webSite1.west);
+        \draw[thick,Latex-Latex] (browser) -- (webSite2.west);
+        \draw[thick,Latex-Latex] (browser) -- (webSite3.west);
+    \end{tikzpicture}
+\end{frame}
+
+\subsection{HTTP}
+
+\begin{frame}{demo: developer tools}
+\end{frame}
+
+\begin{frame}[fragile,label=HTTPReq]{HTTP requests}
+\texttt{https://server.com/dir/file?query=string\#anchor} \\
+    browser connects to server.com; \textbf{browser} sends:
+\begin{framed}
+\tt
+\myemph<2>{GET}\tikzmark{method} /dir/file?query=string HTTP/1.1 \\
+\myemph<3>{Host: \myemph<4>{server.com}\tikzmark{host}} \\
+\myemph<3>{\textit{Other-Key}:  \textit{Other-Value}} \\
+\ldots \\
+~ \\
+\end{framed}
+    \begin{tikzpicture}[overlay,remember picture]
+        \coordinate (overBox) at ([yshift=-2cm]current page.center);
+        \tikzset{
+            every node/.style={align=left,anchor=center},
+        }
+        \begin{visibleenv}<2>
+        \node[mycallout=method,anchor=center] at (overBox) {
+            method: GET or POST most common \\
+            GET --- read web page \\
+            POST --- submit form
+        };
+        \end{visibleenv}
+        \begin{visibleenv}<3>
+        \node[mycallout=host,anchor=center] at (overBox) {
+            headers: \\
+            extra information with request
+        };
+        \end{visibleenv}
+        \begin{visibleenv}<4>
+        \node[mycallout=host,anchor=center] at (overBox) {
+            example extra info: domain name from URL \\
+            servers can host mutliple domains
+        };
+        \end{visibleenv}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile,label=HTTPResp]{HTTP responses}
+\texttt{https://server.com/path/to/file?query=string\#anchor} \\
+    after browser sends request; \textbf{server} sends:
+\begin{framed}
+\tt
+HTTP/1.1 200 OK \\
+Content-Type: text/html\tikzmark{contentType} \\
+\textit{Other-Key}:  \textit{Other-Value} \\
+~ \\
+<html>\ldots
+\end{framed}
+    \begin{tikzpicture}[overlay,remember picture]
+        \coordinate (overBox) at ([yshift=-2cm]current page.center);
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{demo (part 2)}
+\end{frame}

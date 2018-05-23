@@ -1,0 +1,33 @@
+\begin{frame}[fragile,label=HTMLSample]{HTML example}
+\begin{minted}{HTML}
+<p>
+This is a paragraph of text with <b>some bold text</b> and
+<a href="http://somewebsite.invalid">a link</a>.
+\end{minted}
+\hrule
+{
+\small
+This is a paragraph of text with \textbf{some bold text} and
+a \textcolor{blue!70!black}{\underline{a link}}
+}
+\end{frame}
+
+\begin{frame}[fragile,label=tagEx]{tags and elements}
+\begin{itemize}
+\item \verb|<tag-name attribute="value">| --- opening tag
+\item \verb|</tag-name>| --- closing tag (not always allowed/needed)
+\item \verb|<a href="http://somelink.invalid>link text</a>| --- element
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=tagList]{some tags}
+\begin{tabular}{ll|ll|ll}
+\tt p & paragraph & \tt b & \textbf{bold} & \tt i & \textit{italic} \\
+\tt a & link (`anchor') \& \tt form \& form \& \tt input \& input box/option for form \\
+\tt br & line break \\
+\end{tabular}
+\ldots (and more)
+\begin{itemize}
+\item reference: \texttt{https://developer.mozilla.org/en-US/docs/Web/HTML}
+\end{itemize}
+\end{frame}
